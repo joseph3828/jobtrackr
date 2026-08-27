@@ -10,7 +10,7 @@ import {
   useDroppable,
   useDraggable,
 } from '@dnd-kit/core';
-import { getJobs, addJob, updateJobStatus, deleteJob } from '../lib/actions';
+import { getJobs, addJob, updateJobStatus, deleteJob, seedUserExamples } from '../lib/actions';
 
 type Job = {
   id: string;
@@ -106,6 +106,7 @@ export default function KanbanBoard() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [currentUser, setCurrentUser] = useState('');
   const [authError, setAuthError] = useState('');
 
   const sensors = useSensors(
@@ -114,19 +115,20 @@ export default function KanbanBoard() {
 
   useEffect(() => {
     setMounted(true);
-    const loggedIn = localStorage.getItem('jobtrackr_session');
-    if (loggedIn) {
+    const sessionUser = localStorage.getItem('jobtrackr_session');
+    if (sessionUser) {
+      setCurrentUser(sessionUser);
       setIsAuthenticated(true);
-      loadData();
+      loadData(sessionUser);
     }
   }, []);
 
-  async function loadData() {
-    const data = await getJobs();
+  async function loadData(userEmail: string) {
+    const data = await getJobs(userEmail);
     setJobs(data as Job[]);
   }
 
-  const handleAuthSubmit = (e: React.FormEvent) => {
+  const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError('');
 
@@ -140,22 +142,28 @@ export default function KanbanBoard() {
       storedUsers[email] = password;
       localStorage.setItem('jobtrackr_users', JSON.stringify(storedUsers));
       localStorage.setItem('jobtrackr_session', email);
+      setCurrentUser(email);
       setIsAuthenticated(true);
-      loadData();
+
+      // Seed example jobs for the new user
+      await seedUserExamples(email);
+      await loadData(email);
     } else {
       if (!storedUsers[email] || storedUsers[email] !== password) {
         setAuthError('Invalid email or password.');
         return;
       }
       localStorage.setItem('jobtrackr_session', email);
+      setCurrentUser(email);
       setIsAuthenticated(true);
-      loadData();
+      await loadData(email);
     }
   };
 
   const handleLogout = () => {
     localStorage.removeItem('jobtrackr_session');
     setIsAuthenticated(false);
+    setCurrentUser('');
     setEmail('');
     setPassword('');
   };
@@ -176,9 +184,9 @@ export default function KanbanBoard() {
 
   const handleAddJob = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!company || !role) return;
+    if (!company || !role || !currentUser) return;
 
-    const createdJob = await addJob(company, role);
+    const createdJob = await addJob(company, role, currentUser);
     if (createdJob) {
       setJobs((prev) => [createdJob as Job, ...prev]);
     }
@@ -193,7 +201,6 @@ export default function KanbanBoard() {
 
   if (!mounted) return null;
 
-  // Auth Screen (Sign Up / Sign In)
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
@@ -260,14 +267,15 @@ export default function KanbanBoard() {
     );
   }
 
-  // Main Dashboard
   return (
     <div className="min-h-screen bg-slate-50/50 p-6 md:p-10">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">JobTrackr</h1>
-            <p className="text-slate-500 text-sm mt-1">Organize and track your job applications in real time</p>
+            <p className="text-slate-500 text-sm mt-1">
+              Logged in as <span className="font-semibold text-slate-800">{currentUser}</span>
+            </p>
           </div>
 
           <button
@@ -278,7 +286,6 @@ export default function KanbanBoard() {
           </button>
         </div>
 
-        {/* Job Creation Form */}
         <form onSubmit={handleAddJob} className="bg-white p-4 rounded-2xl shadow-xs border border-slate-200/80 mb-8 flex flex-col md:flex-row gap-3">
           <input
             type="text"
@@ -302,7 +309,6 @@ export default function KanbanBoard() {
           </button>
         </form>
 
-        {/* Kanban Board Grid */}
         <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
             {COLUMNS.map((columnTitle) => (

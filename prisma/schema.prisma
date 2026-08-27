@@ -9,6 +9,7 @@ datasource db {
 
 model Job {
   id        String   @id @default(cuid())
+  userId    String   @default("demo@example.com")
   company   String
   role      String
   status    String   @default("Saved")
