@@ -108,7 +108,13 @@ export default function KanbanBoard() {
     setMounted(true);
     const sessionUser = localStorage.getItem('jobtrackr_session');
     const storedTheme = localStorage.getItem('jobtrackr_theme');
-    if (storedTheme === 'dark') setDarkMode(true);
+    
+    if (storedTheme === 'dark') {
+      setDarkMode(true);
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
 
     if (sessionUser) {
       setCurrentUser(sessionUser);
@@ -125,7 +131,14 @@ export default function KanbanBoard() {
   const toggleDarkMode = () => {
     const nextTheme = !darkMode;
     setDarkMode(nextTheme);
-    localStorage.setItem('jobtrackr_theme', nextTheme ? 'dark' : 'light');
+    
+    if (nextTheme) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('jobtrackr_theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('jobtrackr_theme', 'light');
+    }
   };
 
   const exportToCSV = () => {
@@ -229,12 +242,10 @@ export default function KanbanBoard() {
 
   if (!mounted) return null;
 
-  // Filter jobs by search term
   const filteredJobs = jobs.filter(
     (j) => j.company.toLowerCase().includes(search.toLowerCase()) || j.role.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Analytics Metrics
   const total = jobs.length;
   const interviewing = jobs.filter((j) => j.status === 'Interviewing').length;
   const offers = jobs.filter((j) => j.status === 'Offer').length;
@@ -274,93 +285,91 @@ export default function KanbanBoard() {
   }
 
   return (
-    <div className={darkMode ? 'dark' : ''}>
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 p-6 md:p-10 transition-colors">
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-            <div>
-              <h1 className="text-3xl font-extrabold tracking-tight">JobTrackr</h1>
-              <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Logged in as <span className="font-semibold text-slate-800 dark:text-slate-200">{currentUser}</span></p>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <button onClick={exportToCSV} className="px-3.5 py-2 border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold rounded-xl transition">Export CSV</button>
-              <button onClick={toggleDarkMode} className="px-3.5 py-2 border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold rounded-xl transition">{darkMode ? '☀️ Light' : '🌙 Dark'}</button>
-              <button onClick={handleLogout} className="px-3.5 py-2 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 font-semibold rounded-xl text-xs transition">Sign Out</button>
-            </div>
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 p-6 md:p-10 transition-colors">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+          <div>
+            <h1 className="text-3xl font-extrabold tracking-tight">JobTrackr</h1>
+            <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Logged in as <span className="font-semibold text-slate-800 dark:text-slate-200">{currentUser}</span></p>
           </div>
 
-          {/* Analytics Banner */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-2xl shadow-xs">
-              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Total Applications</p>
-              <p className="text-2xl font-black mt-1">{total}</p>
-            </div>
-            <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-2xl shadow-xs">
-              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Active Interviews</p>
-              <p className="text-2xl font-black text-amber-500 mt-1">{interviewing}</p>
-            </div>
-            <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-2xl shadow-xs">
-              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Offers Received</p>
-              <p className="text-2xl font-black text-emerald-500 mt-1">{offers}</p>
-            </div>
-            <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-2xl shadow-xs">
-              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Response Rate</p>
-              <p className="text-2xl font-black text-indigo-500 mt-1">{conversionRate}%</p>
-            </div>
+          <div className="flex items-center gap-3">
+            <button onClick={exportToCSV} className="px-3.5 py-2 border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold rounded-xl transition">Export CSV</button>
+            <button onClick={toggleDarkMode} className="px-3.5 py-2 border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold rounded-xl transition">{darkMode ? '☀️ Light' : '🌙 Dark'}</button>
+            <button onClick={handleLogout} className="px-3.5 py-2 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 font-semibold rounded-xl text-xs transition">Sign Out</button>
           </div>
-
-          {/* Search & Add Inputs */}
-          <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-xs border border-slate-200/80 dark:border-slate-800 mb-8 flex flex-col md:flex-row gap-3">
-            <input type="text" placeholder="🔍 Search applications..." value={search} onChange={(e) => setSearch(e.target.value)} className="flex-1 px-4 py-2.5 border border-slate-200 dark:border-slate-800 dark:bg-slate-950 rounded-xl text-sm" />
-            <div className="flex flex-1 gap-3">
-              <input type="text" placeholder="Company" value={company} onChange={(e) => setCompany(e.target.value)} className="flex-1 px-4 py-2.5 border border-slate-200 dark:border-slate-800 dark:bg-slate-950 rounded-xl text-sm" />
-              <input type="text" placeholder="Role Title" value={role} onChange={(e) => setRole(e.target.value)} className="flex-1 px-4 py-2.5 border border-slate-200 dark:border-slate-800 dark:bg-slate-950 rounded-xl text-sm" />
-              <button onClick={handleAddJob} className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl text-sm transition shrink-0">Add</button>
-            </div>
-          </div>
-
-          {/* Kanban Board */}
-          <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
-              {COLUMNS.map((columnTitle) => (
-                <Column key={columnTitle} title={columnTitle} jobs={filteredJobs.filter((j) => j.status === columnTitle)} onDeleteJob={handleDeleteJob} onSelectJob={setSelectedJob} />
-              ))}
-            </div>
-          </DndContext>
         </div>
 
-        {/* Details Modal */}
-        {selectedJob && (
-          <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-lg p-6 rounded-2xl shadow-2xl">
-              <h2 className="text-xl font-bold mb-1">{selectedJob.role}</h2>
-              <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-6">{selectedJob.company}</p>
-
-              <form onSubmit={handleSaveModal} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-semibold uppercase text-slate-500 mb-1">Salary Range</label>
-                  <input type="text" placeholder="$120,000" value={selectedJob.salary || ''} onChange={(e) => setSelectedJob({ ...selectedJob, salary: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-800 dark:bg-slate-950 rounded-xl text-sm" />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold uppercase text-slate-500 mb-1">Job Post URL</label>
-                  <input type="url" placeholder="https://..." value={selectedJob.url || ''} onChange={(e) => setSelectedJob({ ...selectedJob, url: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-800 dark:bg-slate-950 rounded-xl text-sm" />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold uppercase text-slate-500 mb-1">Notes</label>
-                  <textarea rows={3} placeholder="Recruiter contact, interview dates..." value={selectedJob.notes || ''} onChange={(e) => setSelectedJob({ ...selectedJob, notes: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-800 dark:bg-slate-950 rounded-xl text-sm" />
-                </div>
-
-                <div className="flex justify-end gap-3 pt-4">
-                  <button type="button" onClick={() => setSelectedJob(null)} className="px-4 py-2 text-sm font-semibold border border-slate-300 dark:border-slate-700 rounded-xl">Cancel</button>
-                  <button type="submit" className="px-5 py-2 text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl">Save Changes</button>
-                </div>
-              </form>
-            </div>
+        {/* Analytics Banner */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-2xl shadow-xs">
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Total Applications</p>
+            <p className="text-2xl font-black mt-1">{total}</p>
           </div>
-        )}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-2xl shadow-xs">
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Active Interviews</p>
+            <p className="text-2xl font-black text-amber-500 mt-1">{interviewing}</p>
+          </div>
+          <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-2xl shadow-xs">
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Offers Received</p>
+            <p className="text-2xl font-black text-emerald-500 mt-1">{offers}</p>
+          </div>
+          <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-2xl shadow-xs">
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Response Rate</p>
+            <p className="text-2xl font-black text-indigo-500 mt-1">{conversionRate}%</p>
+          </div>
+        </div>
+
+        {/* Search & Add Inputs */}
+        <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-xs border border-slate-200/80 dark:border-slate-800 mb-8 flex flex-col md:flex-row gap-3">
+          <input type="text" placeholder="🔍 Search applications..." value={search} onChange={(e) => setSearch(e.target.value)} className="flex-1 px-4 py-2.5 border border-slate-200 dark:border-slate-800 dark:bg-slate-950 rounded-xl text-sm" />
+          <div className="flex flex-1 gap-3">
+            <input type="text" placeholder="Company" value={company} onChange={(e) => setCompany(e.target.value)} className="flex-1 px-4 py-2.5 border border-slate-200 dark:border-slate-800 dark:bg-slate-950 rounded-xl text-sm" />
+            <input type="text" placeholder="Role Title" value={role} onChange={(e) => setRole(e.target.value)} className="flex-1 px-4 py-2.5 border border-slate-200 dark:border-slate-800 dark:bg-slate-950 rounded-xl text-sm" />
+            <button onClick={handleAddJob} className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl text-sm transition shrink-0">Add</button>
+          </div>
+        </div>
+
+        {/* Kanban Board */}
+        <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
+            {COLUMNS.map((columnTitle) => (
+              <Column key={columnTitle} title={columnTitle} jobs={filteredJobs.filter((j) => j.status === columnTitle)} onDeleteJob={handleDeleteJob} onSelectJob={setSelectedJob} />
+            ))}
+          </div>
+        </DndContext>
       </div>
+
+      {/* Details Modal */}
+      {selectedJob && (
+        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-lg p-6 rounded-2xl shadow-2xl">
+            <h2 className="text-xl font-bold mb-1">{selectedJob.role}</h2>
+            <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-6">{selectedJob.company}</p>
+
+            <form onSubmit={handleSaveModal} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold uppercase text-slate-500 mb-1">Salary Range</label>
+                <input type="text" placeholder="$120,000" value={selectedJob.salary || ''} onChange={(e) => setSelectedJob({ ...selectedJob, salary: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-800 dark:bg-slate-950 rounded-xl text-sm" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold uppercase text-slate-500 mb-1">Job Post URL</label>
+                <input type="url" placeholder="https://..." value={selectedJob.url || ''} onChange={(e) => setSelectedJob({ ...selectedJob, url: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-800 dark:bg-slate-950 rounded-xl text-sm" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold uppercase text-slate-500 mb-1">Notes</label>
+                <textarea rows={3} placeholder="Recruiter contact, interview dates..." value={selectedJob.notes || ''} onChange={(e) => setSelectedJob({ ...selectedJob, notes: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-800 dark:bg-slate-950 rounded-xl text-sm" />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4">
+                <button type="button" onClick={() => setSelectedJob(null)} className="px-4 py-2 text-sm font-semibold border border-slate-300 dark:border-slate-700 rounded-xl">Cancel</button>
+                <button type="submit" className="px-5 py-2 text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl">Save Changes</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
